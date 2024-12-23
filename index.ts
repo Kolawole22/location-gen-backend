@@ -34,3 +34,5 @@ app.use("/auth", authRouter);
 app.use("/", locationRouter);
 
 // populateLGA();
+// populateStates();
+// populateGeoPoliticalZones();

@@ -3,7 +3,11 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --env-file=.env --watch run index.ts"
+    "dev": "bun --env-file=.env --watch run index.ts",
+    "start": "bun --env-file=.env run ./build/index.js",
+    "build": "bun build index.ts --outdir ./build --target bun",
+    "clean": "rm -rf dist",
+    "build:clean": "bun run clean && bun run build"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -16,11 +20,14 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "aws-sdk": "^2.1692.0",
     "bcrypt": "^5.1.1",
     "express": "^4.21.1",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
+    "mock-aws-s3": "^4.0.2",
     "multer": "^1.4.5-lts.1",
+    "nock": "^13.5.6",
     "pg": "^8.13.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.4"
