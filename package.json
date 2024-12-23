@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "bun --env-file=.env --watch run index.ts",
     "start": "bun --env-file=.env run ./build/index.js",
-    "build": "bun build index.ts --outdir ./build --target bun",
-    "clean": "rm -rf dist",
+    "build": "tsc -p .",
+    "clean": "rm -rf build",
     "build:clean": "bun run clean && bun run build"
   },
   "devDependencies": {
