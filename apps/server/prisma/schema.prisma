@@ -1,0 +1,70 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  code          String    @unique // 8-digit code
+  customCode    String?   @unique // Optional custom code (paid feature)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  locations     Location[]
+  sharedWith    SharedLocation[] @relation("SharedWithUser")
+  sharing       SharedLocation[] @relation("SharingUser")
+  payments      Payment[]
+}
+
+model Location {
+  id            String    @id @default(cuid())
+  name          String
+  latitude      Float?    // Nullable for current location when not tracking
+  longitude     Float?    // Nullable for current location when not tracking
+  code          String    @unique // Unique code for each location
+  isTracking    Boolean   @default(false)
+  isPublic      Boolean   @default(false)
+  isCurrentLocation Boolean @default(false)
+  isExcludedFromSharing Boolean @default(false)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sharedWith    SharedLocation[]
+
+  @@unique([userId, isCurrentLocation], name: "OneCurrentLocationPerUser")
+  @@index([userId])
+}
+
+model SharedLocation {
+  id          String    @id @default(cuid())
+  locationId  String
+  location    Location  @relation(fields: [locationId], references: [id])
+  sharedById  String
+  sharedBy    User      @relation("SharingUser", fields: [sharedById], references: [id])
+  sharedWithId String
+  sharedWith  User      @relation("SharedWithUser", fields: [sharedWithId], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@unique([locationId, sharedWithId])
+}
+
+model Payment {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  amount      Float
+  status      String    // pending, completed, failed
+  reference   String    @unique
+  customCode  String?   // The custom code being purchased
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+} 

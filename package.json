@@ -1,0 +1,20 @@
+{
+  "name": "location-gen-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "mobile": "yarn workspace @location-gen/mobile",
+    "server": "yarn workspace @location-gen/server",
+    "db": "yarn workspace @location-gen/database",
+    "start:expo": "yarn workspace @location-gen/mobile expo start",
+    "start:node": "yarn workspace @location-gen/server dev",
+    "start:all": "concurrently \"yarn workspace mobile expo start\" \"yarn workspace @location-gen/server dev\""
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
