@@ -21,6 +21,10 @@ const shareLocationSchema = z.object({
   userCode: z.string(),
 });
 
+const updateAccessSchema = z.object({
+  userCodes: z.array(z.string()),
+});
+
 // Get all locations
 router.get("/", authenticate, async (req, res, next) => {
   try {
@@ -80,7 +84,7 @@ router.post("/", authenticate, async (req, res, next) => {
           },
         });
 
-        return res.json({
+        res.json({
           status: "success",
           data: { location },
         });
@@ -415,6 +419,158 @@ router.delete("/shared/:id", authenticate, async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+// Toggle location public/private
+router.put("/:id/public", authenticate, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const location = await prisma.location.findUnique({ where: { id } });
+
+    if (!location || location.userId !== req.user!.id) {
+      throw new AppError(403, "Not authorized");
+    }
+
+    const updated = await prisma.location.update({
+      where: { id },
+      data: { isPublic: !location.isPublic },
+    });
+
+    res.json({ status: "success", data: { location: updated } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Manage access list for private locations
+router.put("/:id/access", authenticate, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { userCodes } = updateAccessSchema.parse(req.body);
+
+    const location = await prisma.location.findUnique({ where: { id } });
+    if (!location || location.userId !== req.user!.id) {
+      throw new AppError(403, "Not authorized");
+    }
+
+    // Get user IDs from codes
+    const users = await prisma.user.findMany({
+      where: { code: { in: userCodes } },
+      select: { id: true },
+    });
+
+    // Update shared locations
+    await prisma.sharedLocation.deleteMany({ where: { locationId: id } });
+    const newShares = users.map((user) => ({
+      locationId: id,
+      sharedById: req.user!.id,
+      sharedWithId: user.id,
+    }));
+
+    await prisma.sharedLocation.createMany({ data: newShares });
+
+    res.json({ status: "success" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Add new route for public search
+router.get("/search/:userCode", authenticate, async (req, res, next) => {
+  try {
+    const { userCode } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { code: userCode },
+      include: {
+        locations: {
+          where: {
+            OR: [
+              { isPublic: true },
+              {
+                sharedWith: {
+                  some: { sharedWithId: req.user!.id },
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new AppError(404, "User not found");
+    }
+
+    res.json({
+      status: "success",
+      data: {
+        user: {
+          name: user.name,
+          code: user.code,
+        },
+        locations: user.locations,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get shared users for a location
+router.get("/:id/shared", authenticate, async (req, res) => {
+  const shared = await prisma.sharedLocation.findMany({
+    where: { locationId: req.params.id },
+    include: { sharedWith: true },
+  });
+  res.json(shared.map((s) => s.sharedWith));
+});
+
+// Add/remove user access
+router.post("/:locationId/shared/:userId", authenticate, async (req, res) => {
+  const { locationId, userId } = req.params;
+
+  await prisma.sharedLocation.create({
+    data: {
+      locationId,
+      sharedById: req.user!.id,
+      sharedWithId: userId,
+    },
+  });
+
+  res.json({ status: "success" });
+});
+
+router.delete("/:locationId/shared/:userId", authenticate, async (req, res) => {
+  const { locationId, userId } = req.params;
+
+  await prisma.sharedLocation.deleteMany({
+    where: {
+      locationId,
+      sharedWithId: userId,
+    },
+  });
+
+  res.json({ status: "success" });
+});
+
+// User search endpoint
+router.get("/users/search", authenticate, async (req, res) => {
+  const { query } = req.query;
+  if (!query) return res.status(400).json({ error: "Search query required" });
+
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { code: { contains: query as string, mode: "insensitive" } },
+        { email: { contains: query as string, mode: "insensitive" } },
+      ],
+      NOT: { id: req.user!.id }, // Exclude current user
+    },
+    select: { id: true, email: true, code: true },
+  });
+
+  res.json(users);
 });
 
 export const locationRouter = router;
