@@ -9,6 +9,7 @@ import {
   rateLimiter,
   authRateLimiter,
 } from "./middleware/rate-limit.middleware";
+import { userRouter } from "./routes/user.routes";
 
 dotenv.config();
 
@@ -32,7 +33,7 @@ app.use("/api/auth", authRateLimiter); // Stricter rate limiting for auth routes
 app.use("/api/auth", authRouter);
 app.use("/api/locations", locationRouter);
 app.use("/api/payments", paymentRouter);
-
+app.use("/api/users", userRouter);
 // Error handling
 app.use(errorHandler);
 

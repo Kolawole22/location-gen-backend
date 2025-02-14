@@ -31,12 +31,12 @@ export const authenticate = async (
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      id: string;
+      userId: string;
       email: string;
     };
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
+      where: { id: decoded.userId },
       select: { id: true, email: true },
     });
 

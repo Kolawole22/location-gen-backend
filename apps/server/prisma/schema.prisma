@@ -10,18 +10,21 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  name          String
-  code          String    @unique // 8-digit code
-  customCode    String?   @unique // Optional custom code (paid feature)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  locations     Location[]
-  sharedWith    SharedLocation[] @relation("SharedWithUser")
-  sharing       SharedLocation[] @relation("SharingUser")
-  payments      Payment[]
+  id                String    @id @default(cuid())
+  name              String
+  email             String    @unique
+  password          String
+  code              String    @unique
+  customCode        String?   @unique
+  isEmailVerified   Boolean   @default(false)
+  verificationToken String?
+  resetToken        String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  locations         Location[]
+  sharedLocations   SharedLocation[] @relation("SharedWithUser")
+  sharedByLocations SharedLocation[] @relation("SharingUser")
+  payments          Payment[]
 }
 
 model Location {
