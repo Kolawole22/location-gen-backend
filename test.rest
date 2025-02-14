@@ -1,0 +1,56 @@
+POST http://192.168.0.106:3015/api/auth/signup
+Content-Type: application/json
+
+{
+    "email": "testuser2@mail.com",
+    "name": "Test User2",
+    "password": "testuser2"
+}
+
+### Login Request
+POST http://192.168.0.106:3015/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "testuser2@mail.com",
+    "password": "testuser2"
+}
+
+### Search Users
+# @name login
+POST http://192.168.0.106:3015/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "testuser2@mail.com",
+    "password": "testuser2"
+}
+
+### Search Users
+@token = {{login.response.body.data.token}}
+GET http://192.168.0.106:3015/api/users/search?query=test
+Authorization: Bearer {{token}}
+
+
+### Share Location
+GET http://192.168.0.106:3015/api/locations/shared-with-me
+Authorization: Bearer {{token}}
+
+
+### Share Location
+GET http://192.168.0.106:3015/api/locations
+Authorization: Bearer {{token}}
+
+
+### Share Location
+GET http://192.168.0.106:3015/api/locations/shared-location/cm70g5oei0001mbyzvuo85usu
+Authorization: Bearer {{token}}
+
+
+### Share Location
+GET http://192.168.0.106:3015/api/users/cm6zcn3vq0001gwu9s8swf7sn
+Authorization: Bearer {{token}}
+
+
+
+
