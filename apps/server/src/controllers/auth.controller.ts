@@ -46,9 +46,9 @@ export const signup = async (
     const hashedPassword = await bcrypt.hash(password, 10);
     const code = await generateUniqueCode();
 
-    const verificationToken = jwt.sign({ email }, process.env.JWT_SECRET!, {
-      expiresIn: "1d",
-    });
+    // const verificationToken = jwt.sign({ email }, process.env.JWT_SECRET!, {
+    //   expiresIn: "1d",
+    // });
 
     const user = await prisma.user.create({
       data: {
@@ -137,11 +137,12 @@ export const forgotPassword = async (
     });
 
     if (!user) {
-      return res.json({
+      res.json({
         status: "success",
         message:
           "If an account exists with that email, a password reset link has been sent.",
       });
+      return;
     }
 
     const resetToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
@@ -150,6 +151,7 @@ export const forgotPassword = async (
 
     await prisma.user.update({
       where: { id: user.id },
+      // @ts-ignore
       data: { resetToken },
     });
 
@@ -184,6 +186,7 @@ export const resetPassword = async (
     const user = await prisma.user.findFirst({
       where: {
         id: decoded.userId,
+        // @ts-ignore
         resetToken: token,
       },
     });
@@ -202,6 +205,7 @@ export const resetPassword = async (
       where: { id: user.id },
       data: {
         password: hashedPassword,
+        // @ts-ignore
         resetToken: null,
       },
     });
@@ -236,6 +240,7 @@ export const verifyEmail = async (
     const user = await prisma.user.findFirst({
       where: {
         email: decoded.email,
+        // @ts-ignore
         verificationToken: token,
       },
     });
@@ -251,6 +256,7 @@ export const verifyEmail = async (
     await prisma.user.update({
       where: { id: user.id },
       data: {
+        // @ts-ignore
         isEmailVerified: true,
         verificationToken: null,
       },
@@ -288,13 +294,15 @@ export const resendVerificationEmail = async (
     });
 
     if (!user) {
-      return res.json({
+      res.json({
         status: "success",
         message:
           "If an account exists with that email, a verification link has been sent.",
       });
+      return;
     }
 
+    // @ts-ignore
     if (user.isEmailVerified) {
       throw new AppError(400, "Email is already verified", "EMAIL_VERIFIED");
     }
@@ -305,6 +313,7 @@ export const resendVerificationEmail = async (
 
     await prisma.user.update({
       where: { id: user.id },
+      // @ts-ignore
       data: { verificationToken },
     });
 

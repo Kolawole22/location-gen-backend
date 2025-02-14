@@ -16,6 +16,7 @@ declare global {
 
 export const authenticate = async (
   req: Request,
+  // @ts-ignore
   res: Response,
   next: NextFunction
 ) => {

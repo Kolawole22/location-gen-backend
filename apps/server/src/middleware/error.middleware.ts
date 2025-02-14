@@ -15,8 +15,10 @@ export class AppError extends Error {
 
 export const errorHandler = (
   err: Error,
+  // @ts-ignore
   req: Request,
   res: Response,
+  // @ts-ignore
   next: NextFunction
 ) => {
   console.error("Error:", {
